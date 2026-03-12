@@ -1,212 +1,254 @@
 <!DOCTYPE html>
-<html lang="hi">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Auto Video Share App</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        body { background-color: #0f172a; color: #f8fafc; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        .video-box { 
-            position: relative; 
-            width: 100%; 
-            background: #1e293b; 
-            border-radius: 1rem; 
-            overflow: hidden; 
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
-            aspect-ratio: 16/9;
-        }
-        /* Mirror effect handle karne ke liye */
-        .mirror { transform: scaleX(-1); }
-        video { width: 100%; height: 100%; object-fit: cover; }
-        .controls-overlay {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: linear-gradient(transparent, rgba(0,0,0,0.8));
-            padding: 15px;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-        .video-box:hover .controls-overlay { opacity: 1; }
-        .btn-icon {
-            padding: 8px;
-            border-radius: 50%;
-            background: rgba(255,255,255,0.2);
-            transition: all 0.2s;
-        }
-        .btn-icon:hover { background: rgba(255,255,255,0.4); }
-    </style>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PJ Chat</title>
+
+<style>
+
+body{
+margin:0;
+background:#0f0f0f;
+font-family:sans-serif;
+color:white;
+}
+
+header{
+background:#ff7a00;
+padding:15px;
+font-size:20px;
+font-weight:bold;
+text-align:center;
+}
+
+#videos{
+display:flex;
+flex-direction:column;
+}
+
+video{
+width:100%;
+background:black;
+}
+
+#remoteVideo{
+height:45vh;
+}
+
+#localVideo{
+height:35vh;
+}
+
+#recordBtn{
+position:fixed;
+bottom:20px;
+left:20px;
+width:80px;
+height:80px;
+border-radius:50%;
+background:#ff7a00;
+border:none;
+}
+
+#autoBtn{
+position:fixed;
+top:70px;
+right:20px;
+background:#ff7a00;
+padding:10px;
+border:none;
+border-radius:10px;
+color:white;
+}
+
+#qrBtn{
+position:fixed;
+top:120px;
+right:20px;
+background:#ff7a00;
+padding:10px;
+border:none;
+border-radius:10px;
+}
+
+#roomBox{
+padding:10px;
+text-align:center;
+}
+
+input{
+padding:10px;
+border:none;
+border-radius:8px;
+}
+
+button{
+cursor:pointer;
+}
+
+#qrCanvas{
+margin-top:10px;
+}
+
+</style>
+
 </head>
-<body class="min-h-screen flex flex-col items-center p-4 md:p-8">
 
-    <div class="max-w-6xl w-full">
-        <header class="text-center mb-10">
-            <h1 class="text-4xl font-extrabold text-blue-500 mb-2">Video Segment Sharer</h1>
-            <p class="text-slate-400">Automatic video sharing - Record & Stream</p>
-        </header>
+<body>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <!-- User 1 Slot (You) -->
-            <div id="slot1" class="flex flex-col gap-4">
-                <div class="video-box border-2 border-blue-500/30">
-                    <video id="myVideo" class="mirror" autoplay playsinline muted></video>
-                    <div id="status1" class="absolute top-4 left-4 bg-blue-600 px-3 py-1 rounded-full text-xs font-bold">Offline</div>
-                    
-                    <div class="controls-overlay" id="controls1" style="display:none;">
-                        <button onclick="toggleMute(1)" class="btn-icon" title="Mute/Unmute">
-                            <svg id="muteIcon1" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M6.717 3.55A.5.5 0 0 1 7 4v8a.5.5 0 0 1-.812.39L3.825 10.5H1.5A.5.5 0 0 1 1 10V6a.5.5 0 0 1 .5-.5h2.325l2.363-1.89a.5.5 0 0 1 .529-.06z"/></svg>
-                        </button>
-                        <input type="range" min="0" max="1" step="0.1" value="1" onchange="changeVolume(1, this.value)" class="w-24 accent-blue-500">
-                        <button onclick="disconnect(1)" class="btn-icon bg-red-600/50 hover:bg-red-600 ml-auto" title="Disconnect">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/></svg>
-                        </button>
-                    </div>
-                </div>
-                <button id="btn1" onclick="connect(1)" class="w-full py-4 bg-blue-600 hover:bg-blue-700 rounded-xl font-bold text-lg shadow-lg transition-transform active:scale-95">
-                    Connect 1 (Aap Join Karein)
-                </button>
-            </div>
+<header>PJ Chat</header>
 
-            <!-- User 2 Slot (Opponent) -->
-            <div id="slot2" class="flex flex-col gap-4">
-                <div class="video-box border-2 border-emerald-500/30">
-                    <video id="remoteVideo" autoplay playsinline></video>
-                    <div id="status2" class="absolute top-4 left-4 bg-emerald-600 px-3 py-1 rounded-full text-xs font-bold">Waiting...</div>
-                    
-                    <div class="controls-overlay" id="controls2" style="display:none;">
-                        <button onclick="toggleMute(2)" class="btn-icon" title="Mute/Unmute">
-                            <svg id="muteIcon2" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M6.717 3.55A.5.5 0 0 1 7 4v8a.5.5 0 0 1-.812.39L3.825 10.5H1.5A.5.5 0 0 1 1 10V6a.5.5 0 0 1 .5-.5h2.325l2.363-1.89a.5.5 0 0 1 .529-.06z"/></svg>
-                        </button>
-                        <input type="range" min="0" max="1" step="0.1" value="1" onchange="changeVolume(2, this.value)" class="w-24 accent-emerald-500">
-                        <button onclick="disconnect(2)" class="btn-icon bg-red-600/50 hover:bg-red-600 ml-auto" title="Disconnect">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/></svg>
-                        </button>
-                    </div>
-                </div>
-                <button id="btn2" onclick="connect(2)" class="w-full py-4 bg-emerald-600 hover:bg-emerald-700 rounded-xl font-bold text-lg shadow-lg transition-transform active:scale-95">
-                    Connect 2 (Samne Wala Join Kare)
-                </button>
-            </div>
-        </div>
-    </div>
+<div id="roomBox">
+<input id="roomId" placeholder="room name">
+<button onclick="joinRoom()">Connect</button>
+<canvas id="qrCanvas"></canvas>
+</div>
 
-    <div id="toast" class="fixed bottom-5 left-1/2 -translate-x-1/2 bg-white text-black px-6 py-2 rounded-full font-semibold shadow-2xl transition-all opacity-0 translate-y-10 pointer-events-none"></div>
+<div id="videos">
+<video id="remoteVideo" autoplay playsinline></video>
+<video id="localVideo" autoplay muted playsinline></video>
+</div>
 
-    <script>
-        let streams = { 1: null, 2: null };
-        let recorders = { 1: null, 2: null };
+<button id="recordBtn"></button>
+<button id="autoBtn">LIVE</button>
+<button id="qrBtn">QR</button>
 
-        function showToast(msg) {
-            const t = document.getElementById('toast');
-            t.innerText = msg;
-            t.style.opacity = '1';
-            t.style.transform = 'translate(-1/2, 0)';
-            setTimeout(() => {
-                t.style.opacity = '0';
-                t.style.transform = 'translate(-1/2, 10px)';
-            }, 3000);
-        }
+<script src="https://cdn.jsdelivr.net/npm/simple-peer@9/simplepeer.min.js"></script>
+<script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
 
-        async function connect(id) {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-                streams[id] = stream;
-                
-                const vid = id === 1 ? document.getElementById('myVideo') : document.getElementById('remoteVideo');
-                const stat = document.getElementById(`status${id}`);
-                const ctrl = document.getElementById(`controls${id}`);
-                const btn = document.getElementById(`btn${id}`);
+<script>
 
-                vid.srcObject = stream;
-                stat.innerText = "LIVE & SHARING";
-                stat.classList.remove('bg-blue-600', 'bg-emerald-600');
-                stat.classList.add('bg-red-600', 'animate-pulse');
-                ctrl.style.display = 'flex';
-                btn.style.display = 'none';
+const socket = io("https://signal-simple-peer.glitch.me")
 
-                showToast(`User ${id} Connect Ho Gaya!`);
-                startSharingSim(id, stream);
-            } catch (err) {
-                showToast("Camera access dena hoga!");
-            }
-        }
+let peer
+let stream
+let recorder
+let chunks=[]
+let autoMode=false
 
-        function startSharingSim(id, stream) {
-            // Segment based sharing simulation
-            const recorder = new MediaRecorder(stream);
-            recorders[id] = recorder;
+const localVideo=document.getElementById("localVideo")
+const remoteVideo=document.getElementById("remoteVideo")
+const recordBtn=document.getElementById("recordBtn")
+const autoBtn=document.getElementById("autoBtn")
+const qrBtn=document.getElementById("qrBtn")
 
-            recorder.ondataavailable = (e) => {
-                if (e.data.size > 0) {
-                    // Logic: Yeh data server pe jata aur samne wale ko dikhta
-                    // Simulation ke liye hum self-loop nahi dikhayenge kyunki ye local demo hai
-                    console.log(`User ${id} data segment captured:`, e.data.size);
-                }
-            };
+async function startCam(){
+stream=await navigator.mediaDevices.getUserMedia({video:true,audio:true})
+localVideo.srcObject=stream
+}
 
-            // Capture every 3 seconds
-            setInterval(() => {
-                if (recorder.state === "recording") {
-                    recorder.stop();
-                    recorder.start();
-                } else if (recorder.state === "inactive" && streams[id]) {
-                    recorder.start();
-                }
-            }, 3000);
-        }
+startCam()
 
-        function disconnect(id) {
-            if (streams[id]) {
-                streams[id].getTracks().forEach(track => track.stop());
-                streams[id] = null;
-            }
-            if (recorders[id]) {
-                recorders[id].stop();
-                recorders[id] = null;
-            }
+function joinRoom(){
 
-            const vid = id === 1 ? document.getElementById('myVideo') : document.getElementById('remoteVideo');
-            const stat = document.getElementById(`status${id}`);
-            const ctrl = document.getElementById(`controls${id}`);
-            const btn = document.getElementById(`btn${id}`);
+let room=document.getElementById("roomId").value
 
-            vid.srcObject = null;
-            stat.innerText = id === 1 ? "Offline" : "Waiting...";
-            stat.className = `absolute top-4 left-4 ${id === 1 ? 'bg-blue-600' : 'bg-emerald-600'} px-3 py-1 rounded-full text-xs font-bold`;
-            ctrl.style.display = 'none';
-            btn.style.display = 'block';
+socket.emit("join",room)
 
-            showToast(`User ${id} Disconnected!`);
-        }
+socket.on("ready",()=>{
 
-        function toggleMute(id) {
-            if (streams[id]) {
-                const audioTrack = streams[id].getAudioTracks()[0];
-                audioTrack.enabled = !audioTrack.enabled;
-                const icon = document.getElementById(`muteIcon${id}`);
-                
-                if (audioTrack.enabled) {
-                    icon.innerHTML = '<path d="M6.717 3.55A.5.5 0 0 1 7 4v8a.5.5 0 0 1-.812.39L3.825 10.5H1.5A.5.5 0 0 1 1 10V6a.5.5 0 0 1 .5-.5h2.325l2.363-1.89a.5.5 0 0 1 .529-.06z"/>';
-                    showToast(`User ${id} Unmuted`);
-                } else {
-                    icon.innerHTML = '<path d="M6.717 3.55A.5.5 0 0 1 7 4v8a.5.5 0 0 1-.812.39L3.825 10.5H1.5A.5.5 0 0 1 1 10V6a.5.5 0 0 1 .5-.5h2.325l2.363-1.89a.5.5 0 0 1 .529-.06zM13 8c0 .564-.094 1.107-.266 1.613l-.814-.814A4.02 4.02 0 0 0 12 8V7a.5.5 0 0 1 1 0v1z"/> <path fill-rule="evenodd" d="M1 1l14 14-.707.707L13.586 15l-1.414-1.414L11 12.414 1.707 3.121 1 2.414 1 1z"/>';
-                    showToast(`User ${id} Muted`);
-                }
-            }
-        }
+peer=new SimplePeer({
+initiator:true,
+trickle:false,
+stream:stream
+})
 
-        function changeVolume(id, val) {
-            const vid = id === 1 ? document.getElementById('myVideo') : document.getElementById('remoteVideo');
-            vid.volume = val;
-            showToast(`Volume: ${Math.round(val * 100)}%`);
-        }
-    </script>
+peer.on("signal",data=>{
+socket.emit("signal",data)
+})
+
+peer.on("stream",s=>{
+remoteVideo.srcObject=s
+})
+
+peer.on("data",data=>{
+let blob=new Blob([data],{type:"video/webm"})
+let url=URL.createObjectURL(blob)
+
+let v=document.createElement("video")
+v.src=url
+v.controls=true
+v.style.width="100%"
+
+document.body.appendChild(v)
+})
+
+})
+
+socket.on("signal",data=>{
+peer.signal(data)
+})
+
+}
+
+recordBtn.onmousedown=startRecord
+recordBtn.ontouchstart=startRecord
+
+recordBtn.onmouseup=stopRecord
+recordBtn.ontouchend=stopRecord
+
+function startRecord(){
+
+chunks=[]
+
+recorder=new MediaRecorder(stream)
+
+recorder.ondataavailable=e=>{
+chunks.push(e.data)
+}
+
+recorder.onstop=sendVideo
+
+recorder.start()
+
+}
+
+function stopRecord(){
+
+if(recorder){
+recorder.stop()
+}
+
+}
+
+function sendVideo(){
+
+let blob=new Blob(chunks,{type:"video/webm"})
+
+blob.arrayBuffer().then(buffer=>{
+peer.send(buffer)
+})
+
+if(autoMode){
+startRecord()
+}
+
+}
+
+autoBtn.onclick=()=>{
+
+autoMode=!autoMode
+
+autoBtn.style.background=autoMode?"green":"#ff7a00"
+
+if(autoMode){
+startRecord()
+}
+
+}
+
+qrBtn.onclick=()=>{
+
+let room=document.getElementById("roomId").value
+
+let link=location.href+"?room="+room
+
+QRCode.toCanvas(document.getElementById("qrCanvas"),link)
+
+}
+
+</script>
+
 </body>
 </html>
-
-
